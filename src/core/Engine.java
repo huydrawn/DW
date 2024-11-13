@@ -1,20 +1,29 @@
 package core;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import config.ConfigManager;
 import model.DataConfig;
 
 public class Engine {
 
-	public static void main(String[] args) throws Exception {
+	public void run() {
 		var manager = ConfigManager.getInstance();
 		manager.loadConfig();
 		DataConfig dataConfig = manager.getDataConfig();
-		ExtractTask a = new ExtractTask();
-		a.execute();
-//		Map<Task, Boolean> subTaskOfFetching = new HashMap<>();
-//		subTaskOfFetching.put(new CrawlTask(), false);
-//		TaskCronAbstract job = new FetchingTask(subTaskOfFetching, dataConfig.getDataFetchFrequency());
-//		job.run();
 
+		Map<Task, Boolean> subTaskOfFetching = new LinkedHashMap<>();
+		subTaskOfFetching.put(new CrawlTask(), false);
+		subTaskOfFetching.put(new ExtractTask(), false);
+		TaskCron fetchingJob = new FetchingTask(subTaskOfFetching, dataConfig.getDataFetchFrequency());
+		fetchingJob.run();
+		TaskCron processingJob = new ProcessingTask(dataConfig.getDataProcessingFrequency());
+		processingJob.run();
+	}
+
+	public static void main(String[] args) throws Exception {
+		new Engine().run();
 	}
 }

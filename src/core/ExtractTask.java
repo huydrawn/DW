@@ -4,11 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.jdbi.v3.core.statement.Batch;
 
 import com.opencsv.CSVReader;
 
@@ -30,6 +26,10 @@ public class ExtractTask extends TaskAbstract {
 		for (var fileProcessing : filesProcessing) {
 			try (CSVReader csvReader = new CSVReader(new FileReader(fileProcessing.getPathFile()))) {
 				List<String[]> records = csvReader.readAll();
+
+				if (records.size() == 1)
+					continue;
+
 				StringBuilder sql = new StringBuilder(
 						"INSERT INTO liquidation_staging (symbolName, liquidationPrice,liquidationAmount, liquidationSide,  timeLiquidation, exchangeName, expiredAt) values  ");
 				for (var row : records) {
@@ -49,7 +49,7 @@ public class ExtractTask extends TaskAbstract {
 				});
 
 			} catch (IOException e) {
-				e.printStackTrace();
+
 			}
 		}
 	}

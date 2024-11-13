@@ -20,17 +20,17 @@ public class FetchingTask extends TaskCronAbstract {
 	@Override
 	public void execute() throws Exception {
 		DataConfig config = ConfigManager.getInstance().getDataConfig();
-		
 		subtasks.replaceAll((task, value) -> false);
 		for (int i = 0; i < config.getMaxRetries(); i++) {
 			try {
 				for (var x : subtasks.entrySet()) {
 					if (!x.getValue()) {
-						x.getKey().execute();
+						x.getKey().run();
+						x.setValue(true);
 					}
 				}
+				break;
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
 				if (i == config.getMaxRetries() - 1) {
 					throw new Exception(e.getMessage());
 				}
