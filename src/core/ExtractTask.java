@@ -11,25 +11,37 @@ import com.opencsv.CSVReader;
 import config.ConfigManager;
 import model.FileInfProcessing;
 import utility.DatabaseUtil;
+import utility.LogUtil;
 
 public class ExtractTask extends TaskAbstract {
 
 	@Override
 	public void execute() throws Exception {
+//		4.1.1.3.3.2.1 get DataConfig class
 		var config = ConfigManager.getInstance().getDataConfig();
+//		4.1.1.3.3.2.2 get jdbi to database control 
 		var jdbiConfig = DatabaseUtil.getJdbiConnectionToConfig();
+//		4.1.1.3.3.2.3 get jdbi to database warehouse 
 		var jdbiWareHouse = DatabaseUtil.getJdbiConnectionToWareHouse();
+//		4.1.1.3.3.2.4 get all filesProcessing have status is PENDING in database control and map to FileInProcessing Class 
 		var filesProcessing = jdbiConfig.withHandle(handle -> handle.createQuery(
-				"SELECT fileName as pathFile, status FROM file_processing_status WHERE status IN (:pending, :success)")
-				.bind("pending", "PENDING").bind("success", "SUCCESS").mapToBean(FileInfProcessing.class).list());
-
+				"SELECT fileId , fileName as pathFile, status FROM file_processing_status WHERE status IN (:pending)")
+				.bind("pending", "PENDING").mapToBean(FileInfProcessing.class).list());
+//		4.1.1.3.3.2.5 loop all the filesProcessing 
 		for (var fileProcessing : filesProcessing) {
+//			4.1.1.3.3.2.6 read that file csv  
 			try (CSVReader csvReader = new CSVReader(new FileReader(fileProcessing.getPathFile()))) {
 				List<String[]> records = csvReader.readAll();
-
-				if (records.size() == 1)
+//				4.1.1.3.3.2.7  update that status of this file in database control is ERROR if row is 1
+//				continue the loop
+				if (records.size() == 1) {
+					jdbiConfig.useHandle(handle -> {
+						handle.createUpdate("Update file_processing_status set status=':status' where fileId=:fileId")
+								.bind("status", "ERROR").bind("fileId", fileProcessing.getId());
+					});
 					continue;
-
+				}
+//				4.1.1.3.3.2.8 insert all record expect first row into staging table in database warehouse
 				StringBuilder sql = new StringBuilder(
 						"INSERT INTO liquidation_staging (symbolName, liquidationPrice,liquidationAmount, liquidationSide,  timeLiquidation, exchangeName, expiredAt) values  ");
 				for (var row : records) {
@@ -47,9 +59,16 @@ public class ExtractTask extends TaskAbstract {
 				jdbiWareHouse.useHandle(handle -> {
 					handle.execute(sql);
 				});
-
+//				4.1.1.3.3.2.9 
+//				update status is SUCCESS for that file in table file_processing_status
+				jdbiConfig.useHandle(handle -> {
+					handle.createUpdate("Update file_processing_status set status=':status' where fileId=:fileId")
+							.bind("status", "SUCCESS").bind("fileId", fileProcessing.getId());
+				});
 			} catch (IOException e) {
-
+//				4.1.1.3.3.2.10
+//				throw exception
+				throw e;
 			}
 		}
 	}

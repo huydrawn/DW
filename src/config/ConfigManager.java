@@ -5,6 +5,8 @@ import org.jdbi.v3.core.Jdbi;
 import dao.DataConfigDAO;
 import model.DataConfig;
 import utility.DatabaseUtil;
+import utility.EmailUtil;
+import utility.LogUtil;
 
 public class ConfigManager {
 	private static ConfigManager instance; // Instance duy nhất của Singleton
@@ -17,21 +19,36 @@ public class ConfigManager {
 		this.dataConfig = new DataConfig();
 	}
 
-	// Phương thức truy cập Singleton
+//	2.1 get ConfigManager Instance
 	public static ConfigManager getInstance() {
 		if (instance == null) {
 			synchronized (ConfigManager.class) {
 				if (instance == null) {
-					instance = new ConfigManager(DatabaseUtil.getJdbiConnectionToConfig());
+					try {
+//						2.1.1 create ConfigManager Instance
+//						2.1.1.1 call constructor with jdbi of dataware house as parameter ConfigManager 
+						instance = new ConfigManager(DatabaseUtil.getJdbiConnectionToConfig());
+					} catch (Exception e) {
+//						2.1.1.2 log error
+						LogUtil.logError("Error at get data from config " + e.getMessage(), "Load Config Table", 0,
+								"DANGER");
+					}
 				}
 			}
 		}
+//		2.1.2 get ConfigManager Instance
 		return instance;
 	}
 
-	// Tải cấu hình từ cơ sở dữ liệu vào bộ nhớ
+//	2.2 load table confing in database controller
 	public void loadConfig() {
-		this.dataConfig = jdbi.withExtension(DataConfigDAO.class, DataConfigDAO::getLastConfig);
+		try {
+			this.dataConfig = jdbi.withExtension(DataConfigDAO.class, DataConfigDAO::getLastConfig);
+		} catch (Exception e) {
+			String email = PropertiesConfig.getInstance().getPropertie("email.notification");
+			EmailUtil.sendEmail(email, "Error At loadConfig", "Load failure " + e.getMessage());
+			throw e;
+		}
 	}
 
 	// Truy xuất cấu hình đã tải
