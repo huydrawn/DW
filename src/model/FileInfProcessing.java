@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public class FileInfProcessing {
+		private int id;
 		private String pathFile;
 		private String status;
 	}
