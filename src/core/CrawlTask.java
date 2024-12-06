@@ -1,5 +1,7 @@
 package core;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -43,9 +45,16 @@ public class CrawlTask extends TaskAbstract {
 
 			// Chạy tiến trình
 			Process process = processBuilder.start();
-
+			// Đọc stdout
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "utf-8"))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					
+				}
+			}
 			// Đợi cho đến khi tiến trình hoàn tất
 			int exitCode = process.waitFor();
+			System.out.println(exitCode);
 			if (exitCode == 0) {
 //				4.1.1.3.3.1.6
 //				Get jdbi control database 
