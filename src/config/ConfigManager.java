@@ -1,5 +1,7 @@
 package config;
 
+import javax.mail.MessagingException;
+
 import org.jdbi.v3.core.Jdbi;
 
 import dao.DataConfigDAO;
@@ -46,7 +48,12 @@ public class ConfigManager {
 			this.dataConfig = jdbi.withExtension(DataConfigDAO.class, DataConfigDAO::getLastConfig);
 		} catch (Exception e) {
 			String email = PropertiesConfig.getInstance().getPropertie("email.notification");
-			EmailUtil.sendEmail(email, "Error At loadConfig", "Load failure " + e.getMessage());
+			try {
+				EmailUtil.sendEmail(email, "Error At loadConfig", "Load failure " + e.getMessage());
+			} catch (MessagingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			throw e;
 		}
 	}
