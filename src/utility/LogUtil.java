@@ -1,5 +1,7 @@
 package utility;
 
+import javax.mail.MessagingException;
+
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Update;
 
@@ -8,6 +10,14 @@ import config.PropertiesConfig;
 import model.DataConfig;
 
 public class LogUtil {
+	public static void logForSendEmailFailure(Exception e) {
+		try {
+			logToDb(e.getMessage(), "Send Email", 0, "DANGER");
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
 
 	public static String getEmailLog() {
 		String emailLog = null;
@@ -26,20 +36,33 @@ public class LogUtil {
 			EmailUtil.sendEmail(emailLog, "DataWare House Software Error", msg);
 			logToDb(msg, taskName, processingTime, loglevel);
 		} catch (Exception e) {
-			EmailUtil.sendEmail(emailLog, "Error when logError to DB", "ERROR");
+			if (e instanceof MessagingException) {
+				logForSendEmailFailure(e);
+			} else {
+				try {
+					EmailUtil.sendEmail(emailLog, "Error when logError to DB", "ERROR");
+				} catch (MessagingException e1) {
+					// TODO Auto-generated catch block
+					logForSendEmailFailure(e1);
+				}
+			}
 		}
 	}
 
 	public static void logSuccess(String msg, String taskName, long processingTime, String loglevel) {
-		String emailLog = getEmailLog();
 		try {
 			logToDb(msg, taskName, processingTime, loglevel);
 		} catch (Exception e) {
-			EmailUtil.sendEmail(emailLog, "Error when log to DB", "ERROR");
+			String emailLog = getEmailLog();
+			try {
+				EmailUtil.sendEmail(emailLog, "Error when logs to DB", "ERROR");
+			} catch (MessagingException e1) {
+				logForSendEmailFailure(e1);
+			}
 		}
 	}
 
-	private static void logToDb(String msg, String taskName, long processingTime, String loglevel) throws Exception {
+	public static void logToDb(String msg, String taskName, long processingTime, String loglevel) throws Exception {
 		Jdbi jdbi = null;
 		jdbi = DatabaseUtil.getJdbiConnectionToConfig();
 		jdbi.useHandle(handle -> {

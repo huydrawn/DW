@@ -2,6 +2,8 @@ package core;
 
 import java.util.Map;
 
+import com.google.protobuf.Value;
+
 import config.ConfigManager;
 import model.DataConfig;
 
@@ -26,6 +28,11 @@ public class FetchingTask extends TaskCronAbstract {
 //		4.1.1.3  int i =0 
 //		if i < maxRetries is condition
 		for (int i = 0; i < config.getMaxRetries(); i++) {
+
+			boolean allRun = subtasks.values().stream().allMatch(value -> value);
+			if (allRun)
+				break;
+
 			try {
 //				4.1.1.3.1 loop all subtasks
 				for (var x : subtasks.entrySet()) {
@@ -42,6 +49,7 @@ public class FetchingTask extends TaskCronAbstract {
 			} catch (Exception e) {
 				if (i == config.getMaxRetries() - 1) {
 //					4.1.1.5 throw error
+					System.out.println(e);
 					throw new Exception(e.getMessage());
 				}
 			}
