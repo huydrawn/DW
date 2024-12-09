@@ -1,5 +1,6 @@
 package core;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -66,6 +67,13 @@ public class ExtractTask extends TaskAbstract {
 				});
 			} catch (IOException e) {
 				System.out.println(e);
+				// 4.1.1.3.3.2.10.1 update status is ERROR for that file in table file_processing_status
+				if(e instanceof FileNotFoundException) {
+					jdbiConfig.useHandle(handle -> {
+						handle.createUpdate("Update file_processing_status set status='ERROR' where fileId=:fileId")
+								.bind("fileId", fileProcessing.getFileId()).execute();
+					});
+				}
 //				4.1.1.3.3.2.10
 //				throw exception
 				throw e;
