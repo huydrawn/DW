@@ -41,7 +41,7 @@ public class ExtractTask extends TaskAbstract {
 					});
 					continue;
 				}
-//				4.1.1.3.3.2.8 insert all record expect first row into liquidation_staging table in database warehouse
+//				4.1.1.3.3.2.8 insert all record expect first row into staging table in database warehouse
 				StringBuilder sql = new StringBuilder(
 						"INSERT INTO liquidation_staging (symbolName, liquidationPrice,liquidationAmount, liquidationSide,  timeLiquidation, exchangeName, expiredAt) values  ");
 				for (var row : records) {
