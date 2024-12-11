@@ -37,7 +37,7 @@ public class ExtractTask extends TaskAbstract {
 				if (records.size() == 1) {
 					jdbiConfig.useHandle(handle -> {
 						handle.createUpdate("Update file_processing_status set status=':status' where fileId=:fileId")
-								.bind("status", "ERROR").bind("fileId", fileProcessing.getId());
+								.bind("status", "ERROR").bind("fileId", fileProcessing.getFileId());
 					});
 					continue;
 				}
@@ -62,7 +62,7 @@ public class ExtractTask extends TaskAbstract {
 //				4.1.1.3.3.2.9 update status is SUCCESS for that file in table file_processing_status
 				jdbiConfig.useHandle(handle -> {
 					handle.createUpdate("Update file_processing_status set status='SUCCESS' where fileId=:fileId")
-							.bind("fileId", fileProcessing.getId()).execute();
+							.bind("fileId", fileProcessing.getFileId()).execute();
 				});
 			} catch (IOException e) {
 				System.out.println(e);
@@ -70,7 +70,7 @@ public class ExtractTask extends TaskAbstract {
 				if(e instanceof FileNotFoundException) {
 					jdbiConfig.useHandle(handle -> {
 						handle.createUpdate("Update file_processing_status set status='ERROR' where fileId=:fileId")
-								.bind("fileId", fileProcessing.getId()).execute();
+								.bind("fileId", fileProcessing.getFileId()).execute();
 					});
 				}
 //				4.1.1.3.3.2.10 throw exception
