@@ -100,8 +100,13 @@ class BaseCrawler:
                                          "td:nth-child(1) span.avatar-span span:nth-child(2)").text.strip()
         symbol = row.find_element(By.CSS_SELECTOR, "td:nth-child(3) div div div").text.strip()
         amount = row.find_element(By.CSS_SELECTOR, "td:nth-child(4)").text.strip()
+        value_amount, value_btc = amount.replace("\n", " ").strip().replace("$", "").split(" ", 1)
         price = row.find_element(By.CSS_SELECTOR, "td:nth-child(5)").text.strip()
         value_price, side = price.replace("\n", " ").strip().replace("$", "").split(" ", 1)
+        if side.lower() == "longs":
+            side = "long"
+        else:
+            side = "short"
         time_created = row.find_element(By.CSS_SELECTOR, "td:nth-child(2)").text.strip()
 
         current_year = datetime.now().year
@@ -112,7 +117,7 @@ class BaseCrawler:
         return {
             'symbol': symbol,
             'price': value_price,
-            'amount': amount,
+            'amount': value_amount,
             'side': side,
             'time_created': formatted_time,
             'exchange_name': exchange_name
@@ -121,29 +126,29 @@ class BaseCrawler:
 
 if __name__ == '__main__':
     # print(f'Số lượng parameter truyền vào: {len(sys.argv)}')
-    # if len(sys.argv) < 4:
-    #     print("Usage: python crawltool2.py <output_path> <separator> <column_mapping>")
-    #     sys.exit(1)
-    #
-    # # Nhận tham số
-    # output_path = sys.argv[1]
-    # separator = sys.argv[2]
-    # column_format = sys.argv[3]
-
-    test_data = [
-        "tool",
-        "D:/tmp/test_transaction.csv",
-        ",",
-        "Name,Price,Volume,Side,Time,Exchange Name"
-    ]
-    if len(test_data) < 4:
+    if len(sys.argv) < 4:
         print("Usage: python crawltool2.py <output_path> <separator> <column_mapping>")
         sys.exit(1)
 
     # Nhận tham số
-    output_path = test_data[1]
-    separator = test_data[2]
-    column_format = test_data[3]
+    output_path = sys.argv[1]
+    separator = sys.argv[2]
+    column_format = sys.argv[3]
+
+    # test_data = [
+    #     "tool",
+    #     "D:/tmp/test_transaction.csv",
+    #     ",",
+    #     "Name,Price,Volume,Side,Time,Exchange Name"
+    # ]
+    # if len(test_data) < 4:
+    #     print("Usage: python crawltool2.py <output_path> <separator> <column_mapping>")
+    #     sys.exit(1)
+    #
+    # # Nhận tham số
+    # output_path = test_data[1]
+    # separator = test_data[2]
+    # column_format = test_data[3]
 
     # Chuyển đổi định dạng cột thành ánh xạ
     column_format_list = column_format.split(",")
@@ -155,7 +160,6 @@ if __name__ == '__main__':
         'time_created': column_format_list[4].strip(),
         'exchange_name': column_format_list[5].strip()
     }
-
     try:
         crawler = BaseCrawler("https://coinank.com/liquidation", column_mapping)
         crawler.handle()

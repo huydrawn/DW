@@ -13,12 +13,12 @@ import io
 from webdriver_manager.chrome import ChromeDriverManager
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-# test_data = [
-#         "tool",
-#         "D:/tmp/20241206_010035.csv",
-#         ",",
-#         "Name,Price,Volume,Side,Time,Exchange Name"
-#     ]
+test_data = [
+        "tool",
+        "D:/tmp/20241206_010035.csv",
+        ",",
+        "Name,Price,Volume,Side,Time,Exchange Name"
+    ]
 # if len(test_data) > 1:
 #     # Lấy tham số từ sys.argv
 #     path_file = test_data[1]  # Tham số đầu tiên
